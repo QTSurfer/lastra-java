@@ -139,7 +139,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.qtsurfer:reef-java:0.1.0'
+    implementation 'com.github.qtsurfer:reef-java:0.5.0'
 }
 ```
 
