@@ -6,16 +6,16 @@
 
 Columnar time series file format with per-column codec selection.
 
-Designed for financial tick data and strategy signals. Combines [ALP](https://github.com/QTSurfer/alp-java) compression for doubles, delta-varint for timestamps, and ZSTD/gzip for binary data into a single `.reef` file.
+Designed for financial tick data and strategy signals. Combines [ALP](https://github.com/QTSurfer/alp-java), Gorilla, and Pongo compression for doubles, delta-varint for timestamps, and ZSTD/gzip for binary data into a single `.reef` file.
 
 ## Features
 
-- **Per-column codecs**: ALP for prices/indicators, delta-varint for timestamps, ZSTD/gzip for JSON signals
+- **Per-column codecs**: ALP/Gorilla/Pongo for prices/indicators, delta-varint for timestamps, ZSTD/gzip for JSON signals
 - **Two sections**: regular time series (series) + sparse timestamped events (events)
 - **Column metadata**: optional key-value metadata per column (e.g., indicator parameters)
 - **Selective column access**: footer offsets enable reading specific columns without decompressing others
 - **Little-endian throughout**: JS/TS readers can use `Float64Array` zero-copy on decoded data
-- **Zero Hadoop/Parquet dependency**: pure Java + [alp-java](https://github.com/QTSurfer/alp-java) + zstd-jni
+- **Zero Hadoop/Parquet dependency**: pure Java + [alp-java](https://github.com/QTSurfer/alp-java) + zstd-jni, Gorilla and Pongo codecs have zero external deps
 - Java 11+
 
 ## File Format
@@ -37,14 +37,16 @@ FOOTER:             column offsets + "REF!" magic
 
 ## Codecs
 
-| Codec | DataType | Use case |
-|-------|----------|----------|
-| `DELTA_VARINT` | LONG | Timestamps (~1 byte/value for regular intervals) |
-| `ALP` | DOUBLE | Prices, indicators (~3-4 bits/value for 2dp financial data) |
-| `VARLEN` | BINARY | Short strings, signal types |
-| `VARLEN_ZSTD` | BINARY | JSON payloads, bulk binary data |
-| `VARLEN_GZIP` | BINARY | Metadata, small text (browser DecompressionStream compatible) |
-| `RAW` | LONG/DOUBLE | Uncompressed fallback |
+| Codec | ID | DataType | Use case |
+|-------|-----|----------|----------|
+| `DELTA_VARINT` | 1 | LONG | Timestamps (~1 byte/value for regular intervals) |
+| `ALP` | 2 | DOUBLE | Prices, indicators (~3-4 bits/value for 2dp financial data) |
+| `GORILLA` | 6 | DOUBLE | Gorilla XOR compression (Facebook VLDB 2015). Good general-purpose double codec |
+| `PONGO` | 7 | DOUBLE | Decimal-aware erasure + Gorilla XOR. Best for decimal-native data (prices, ~18 bits/value on 2dp) |
+| `VARLEN` | 3 | BINARY | Short strings, signal types |
+| `VARLEN_ZSTD` | 4 | BINARY | JSON payloads, bulk binary data |
+| `VARLEN_GZIP` | 5 | BINARY | Metadata, small text (browser DecompressionStream compatible) |
+| `RAW` | 0 | LONG/DOUBLE | Uncompressed fallback |
 
 ## Usage
 
@@ -127,7 +129,7 @@ OHLCV ticker data (1000 rows, 2 decimal places):
 <dependency>
     <groupId>com.github.qtsurfer</groupId>
     <artifactId>reef-java</artifactId>
-    <version>0.5.0</version>
+    <version>0.6.0</version>
 </dependency>
 ```
 
@@ -139,7 +141,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.qtsurfer:reef-java:0.5.0'
+    implementation 'com.github.qtsurfer:reef-java:0.6.0'
 }
 ```
 

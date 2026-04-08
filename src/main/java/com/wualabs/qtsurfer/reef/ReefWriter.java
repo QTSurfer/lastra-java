@@ -2,6 +2,8 @@ package com.wualabs.qtsurfer.reef;
 
 import com.wualabs.qtsurfer.alp.AlpCompressor;
 import com.wualabs.qtsurfer.reef.codec.DeltaVarintCodec;
+import com.wualabs.qtsurfer.reef.codec.GorillaCodec;
+import com.wualabs.qtsurfer.reef.codec.PongoCodec;
 import com.wualabs.qtsurfer.reef.codec.RawCodec;
 import com.wualabs.qtsurfer.reef.codec.VarlenCodec;
 import java.io.ByteArrayOutputStream;
@@ -240,6 +242,8 @@ public class ReefWriter implements Closeable {
     private byte[] compressDoubleColumn(double[] data, int count, Reef.Codec codec) {
         switch (codec) {
             case ALP: return new AlpCompressor().compress(data, count);
+            case GORILLA: return GorillaCodec.encode(data, count);
+            case PONGO: return PongoCodec.encode(data, count);
             case RAW: return RawCodec.encodeDoubles(data, count);
             default: throw new IllegalArgumentException("Unsupported codec for DOUBLE: " + codec);
         }

@@ -52,7 +52,11 @@ public final class Reef {
         /** Variable-length + ZSTD block compression. For JSON/binary bulk data. */
         VARLEN_ZSTD(4),
         /** Variable-length + gzip block compression. For metadata/small text. */
-        VARLEN_GZIP(5);
+        VARLEN_GZIP(5),
+        /** Gorilla XOR compression. For double columns. */
+        GORILLA(6),
+        /** Decimal-aware erasure + Gorilla XOR. Best for decimal-native doubles (prices). */
+        PONGO(7);
 
         public final int id;
 

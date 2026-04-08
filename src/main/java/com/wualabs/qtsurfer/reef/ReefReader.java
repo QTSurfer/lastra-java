@@ -2,6 +2,8 @@ package com.wualabs.qtsurfer.reef;
 
 import com.wualabs.qtsurfer.alp.AlpDecompressor;
 import com.wualabs.qtsurfer.reef.codec.DeltaVarintCodec;
+import com.wualabs.qtsurfer.reef.codec.GorillaCodec;
+import com.wualabs.qtsurfer.reef.codec.PongoCodec;
 import com.wualabs.qtsurfer.reef.codec.RawCodec;
 import com.wualabs.qtsurfer.reef.codec.VarlenCodec;
 import java.io.IOException;
@@ -196,6 +198,8 @@ public class ReefReader {
     private double[] decodeDoubleColumn(byte[] data, int count, Reef.Codec codec) {
         switch (codec) {
             case ALP: return new AlpDecompressor().decompress(data);
+            case GORILLA: return GorillaCodec.decode(data, count);
+            case PONGO: return PongoCodec.decode(data, count);
             case RAW: return RawCodec.decodeDoubles(data, count);
             default: throw new IllegalArgumentException("Unsupported codec for DOUBLE: " + codec);
         }
