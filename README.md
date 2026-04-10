@@ -201,7 +201,7 @@ OHLCV ticker data (1000 rows, 2 decimal places):
 <dependency>
     <groupId>com.github.qtsurfer</groupId>
     <artifactId>lastra-java</artifactId>
-    <version>0.7.0</version>
+    <version>0.8.0</version>
 </dependency>
 ```
 
@@ -213,7 +213,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.qtsurfer:lastra-java:0.7.0'
+    implementation 'com.github.qtsurfer:lastra-java:0.8.0'
 }
 ```
 
