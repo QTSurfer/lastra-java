@@ -8,9 +8,10 @@
     <packaging>jar</packaging>
 
     <name>Reef</name>
-    <description>Reef: columnar time series file format. Combines per-column codec selection
-        (ALP, Gorilla, delta-varint) with separated series and events sections for efficient
-        storage of financial tick data and strategy signals.</description>
+    <description>Reef: columnar time series file format optimized for numeric data.
+        Combines per-column codec selection (ALP, Gorilla, Pongo, delta-varint) with
+        separated series and events sections. Ideal for financial tick data, IoT sensors,
+        and infrastructure metrics.</description>
     <url>https://github.com/QTSurfer/reef-java</url>
 
     <scm>
