@@ -21,7 +21,7 @@ Combines [ALP](https://github.com/QTSurfer/alp-java), Gorilla, and Pongo compres
 ## File Format
 
 ```
-HEADER (24 bytes, LE):
+HEADER (22 bytes, LE):
   "REEF" magic | version (1) | flags | seriesRowCount | seriesColCount
   eventsRowCount | eventsColCount
 
@@ -32,8 +32,20 @@ COLUMN DESCRIPTORS (series, then events):
 SERIES DATA:        per column: [4 bytes length] [compressed data]
 EVENTS DATA:        per column: [4 bytes length] [compressed data]
 
-FOOTER:             column offsets + "REF!" magic
+FOOTER:             column offsets + [column CRC32s] + "REF!" magic
 ```
+
+### Header flags
+
+| Flag | Bit | Description |
+|------|-----|-------------|
+| `FLAG_HAS_EVENTS` | 0 | File contains an events section |
+| `FLAG_HAS_FOOTER` | 1 | Footer with column offsets is present |
+| `FLAG_HAS_CHECKSUMS` | 2 | Per-column CRC32 checksums in footer |
+
+### Integrity: per-column CRC32
+
+When `FLAG_HAS_CHECKSUMS` is set, the footer contains one CRC32 (IEEE 802.3) per column, computed over the compressed data bytes. The reader verifies each column on access — a corrupted column throws an exception identifying which column failed, while intact columns remain readable.
 
 ## Codecs
 
