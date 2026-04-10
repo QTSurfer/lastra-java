@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.CRC32;
 
 /**
  * Writes Reef files: header + series columns + optional events columns + footer.
@@ -137,7 +138,7 @@ public class ReefWriter implements Closeable {
     @Override
     public void close() throws IOException {
         boolean hasEvents = !eventColumns.isEmpty() && eventsRowCount > 0;
-        int flags = Reef.FLAG_HAS_FOOTER;
+        int flags = Reef.FLAG_HAS_FOOTER | Reef.FLAG_HAS_CHECKSUMS;
         if (hasEvents) flags |= Reef.FLAG_HAS_EVENTS;
 
         ByteArrayOutputStream body = new ByteArrayOutputStream();
@@ -163,15 +164,18 @@ public class ReefWriter implements Closeable {
         List<byte[]> seriesCompressed = compressColumns(seriesColumns,
                 seriesLongBuffers, seriesDoubleBuffers, seriesBinaryBuffers, seriesRowCount);
         List<Integer> seriesOffsets = new ArrayList<>();
+        List<Integer> seriesCrcs = new ArrayList<>();
         int dataStart = body.size();
         for (byte[] colData : seriesCompressed) {
             seriesOffsets.add(body.size() - dataStart);
             writeIntLE(body, colData.length);
             body.write(colData);
+            seriesCrcs.add(crc32(colData));
         }
 
         // === EVENTS DATA ===
         List<Integer> eventOffsets = new ArrayList<>();
+        List<Integer> eventCrcs = new ArrayList<>();
         if (hasEvents) {
             List<byte[]> eventsCompressed = compressColumns(eventColumns,
                     eventLongBuffers, eventDoubleBuffers, eventBinaryBuffers, eventsRowCount);
@@ -179,12 +183,15 @@ public class ReefWriter implements Closeable {
                 eventOffsets.add(body.size() - dataStart);
                 writeIntLE(body, colData.length);
                 body.write(colData);
+                eventCrcs.add(crc32(colData));
             }
         }
 
         // === FOOTER ===
         for (int offset : seriesOffsets) writeIntLE(body, offset);
         for (int offset : eventOffsets) writeIntLE(body, offset);
+        for (int crc : seriesCrcs) writeIntLE(body, crc);
+        for (int crc : eventCrcs) writeIntLE(body, crc);
         writeIntLE(body, Reef.FOOTER_MAGIC);
 
         out.write(body.toByteArray());
@@ -256,6 +263,12 @@ public class ReefWriter implements Closeable {
             case VARLEN_GZIP: return VarlenCodec.encode(data, count, VarlenCodec.COMPRESSION_GZIP);
             default: throw new IllegalArgumentException("Unsupported codec for BINARY: " + codec);
         }
+    }
+
+    private static int crc32(byte[] data) {
+        CRC32 crc = new CRC32();
+        crc.update(data);
+        return (int) crc.getValue();
     }
 
     private static void writeIntLE(ByteArrayOutputStream out, int value) {

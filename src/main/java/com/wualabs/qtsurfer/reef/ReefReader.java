@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.CRC32;
 
 /**
  * Reads Reef files. Supports selective column reading via footer offsets.
@@ -46,6 +47,11 @@ public class ReefReader {
     private final int[] eventDataPos;
     private final int[] eventDataLen;
 
+    // Per-column CRC32 checksums (empty if file has no checksums)
+    private final int[] seriesCrcs;
+    private final int[] eventCrcs;
+    private final boolean hasChecksums;
+
     private ReefReader(byte[] data) {
         this.buf = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN);
 
@@ -73,14 +79,20 @@ public class ReefReader {
         // Data section starts here
         this.dataOffset = buf.position();
 
-        // Read footer offsets
+        // Read footer (offsets + optional checksums)
         boolean hasFooter = (flags & Reef.FLAG_HAS_FOOTER) != 0;
+        this.hasChecksums = (flags & Reef.FLAG_HAS_CHECKSUMS) != 0;
+
         if (hasFooter) {
-            // Footer is at end: (seriesColCount + eventColCount) * 4 + 4 (magic) bytes from end
-            int totalOffsets = seriesColCount + eventColumns.size();
-            int footerStart = data.length - totalOffsets * 4 - 4;
-            ByteBuffer footer = ByteBuffer.wrap(data, footerStart, totalOffsets * 4 + 4)
+            int totalCols = seriesColCount + eventColumns.size();
+            int footerInts = totalCols; // offsets
+            if (hasChecksums) footerInts += totalCols; // + CRCs
+            footerInts += 1; // REF! magic
+
+            int footerStart = data.length - footerInts * 4;
+            ByteBuffer footer = ByteBuffer.wrap(data, footerStart, footerInts * 4)
                     .order(ByteOrder.LITTLE_ENDIAN);
+
             this.seriesOffsets = new int[seriesColCount];
             for (int i = 0; i < seriesColCount; i++) {
                 seriesOffsets[i] = footer.getInt();
@@ -89,6 +101,21 @@ public class ReefReader {
             for (int i = 0; i < eventColumns.size(); i++) {
                 eventOffsets[i] = footer.getInt();
             }
+
+            if (hasChecksums) {
+                this.seriesCrcs = new int[seriesColCount];
+                for (int i = 0; i < seriesColCount; i++) {
+                    seriesCrcs[i] = footer.getInt();
+                }
+                this.eventCrcs = new int[eventColumns.size()];
+                for (int i = 0; i < eventColumns.size(); i++) {
+                    eventCrcs[i] = footer.getInt();
+                }
+            } else {
+                this.seriesCrcs = new int[0];
+                this.eventCrcs = new int[0];
+            }
+
             int footerMagic = footer.getInt();
             if (footerMagic != Reef.FOOTER_MAGIC) {
                 throw new IllegalArgumentException("Invalid Reef footer");
@@ -96,6 +123,8 @@ public class ReefReader {
         } else {
             this.seriesOffsets = new int[0];
             this.eventOffsets = new int[0];
+            this.seriesCrcs = new int[0];
+            this.eventCrcs = new int[0];
         }
 
         // Precompute column data positions by scanning length prefixes
@@ -145,23 +174,26 @@ public class ReefReader {
         return findColumn(eventColumns, name);
     }
 
+    /** Returns true if this file contains per-column CRC32 checksums. */
+    public boolean hasChecksums() { return hasChecksums; }
+
     // --- Series column readers ---
 
     public long[] readSeriesLong(String name) {
         int idx = findColumnIndex(seriesColumns, name);
-        byte[] colData = extractColumnData(seriesDataPos[idx], seriesDataLen[idx]);
+        byte[] colData = extractAndVerify(seriesDataPos[idx], seriesDataLen[idx], seriesCrcs, idx, name);
         return decodeLongColumn(colData, seriesRowCount, seriesColumns.get(idx).codec());
     }
 
     public double[] readSeriesDouble(String name) {
         int idx = findColumnIndex(seriesColumns, name);
-        byte[] colData = extractColumnData(seriesDataPos[idx], seriesDataLen[idx]);
+        byte[] colData = extractAndVerify(seriesDataPos[idx], seriesDataLen[idx], seriesCrcs, idx, name);
         return decodeDoubleColumn(colData, seriesRowCount, seriesColumns.get(idx).codec());
     }
 
     public byte[][] readSeriesBinary(String name) {
         int idx = findColumnIndex(seriesColumns, name);
-        byte[] colData = extractColumnData(seriesDataPos[idx], seriesDataLen[idx]);
+        byte[] colData = extractAndVerify(seriesDataPos[idx], seriesDataLen[idx], seriesCrcs, idx, name);
         return decodeBinaryColumn(colData, seriesRowCount);
     }
 
@@ -169,19 +201,19 @@ public class ReefReader {
 
     public long[] readEventLong(String name) {
         int idx = findColumnIndex(eventColumns, name);
-        byte[] colData = extractColumnData(eventDataPos[idx], eventDataLen[idx]);
+        byte[] colData = extractAndVerify(eventDataPos[idx], eventDataLen[idx], eventCrcs, idx, name);
         return decodeLongColumn(colData, eventsRowCount, eventColumns.get(idx).codec());
     }
 
     public double[] readEventDouble(String name) {
         int idx = findColumnIndex(eventColumns, name);
-        byte[] colData = extractColumnData(eventDataPos[idx], eventDataLen[idx]);
+        byte[] colData = extractAndVerify(eventDataPos[idx], eventDataLen[idx], eventCrcs, idx, name);
         return decodeDoubleColumn(colData, eventsRowCount, eventColumns.get(idx).codec());
     }
 
     public byte[][] readEventBinary(String name) {
         int idx = findColumnIndex(eventColumns, name);
-        byte[] colData = extractColumnData(eventDataPos[idx], eventDataLen[idx]);
+        byte[] colData = extractAndVerify(eventDataPos[idx], eventDataLen[idx], eventCrcs, idx, name);
         return decodeBinaryColumn(colData, eventsRowCount);
     }
 
@@ -211,9 +243,19 @@ public class ReefReader {
 
     // --- Helpers ---
 
-    private byte[] extractColumnData(int pos, int len) {
+    private byte[] extractAndVerify(int pos, int len, int[] crcs, int idx, String colName) {
         byte[] data = new byte[len];
         System.arraycopy(buf.array(), pos, data, 0, len);
+        if (hasChecksums && idx < crcs.length) {
+            CRC32 crc = new CRC32();
+            crc.update(data);
+            int actual = (int) crc.getValue();
+            if (actual != crcs[idx]) {
+                throw new IllegalStateException(String.format(
+                        "CRC32 mismatch on column '%s': expected 0x%08X, got 0x%08X",
+                        colName, crcs[idx], actual));
+            }
+        }
         return data;
     }
 

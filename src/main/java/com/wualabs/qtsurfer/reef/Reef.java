@@ -73,4 +73,6 @@ public final class Reef {
     /** Header flags. */
     public static final int FLAG_HAS_EVENTS = 1;
     public static final int FLAG_HAS_FOOTER = 1 << 1;
+    /** Per-column CRC32 checksums stored in footer. */
+    public static final int FLAG_HAS_CHECKSUMS = 1 << 2;
 }
