@@ -9,7 +9,7 @@ import java.util.Random;
 
 /**
  * Generates .lastra fixture files for cross-language testing (Java writer → TS reader).
- * Run with: mvn exec:java -Dexec.mainClass=...ReefTestFixtureGenerator -Dexec.args="/output/dir"
+ * Run with: mvn exec:java -Dexec.mainClass=...LastraTestFixtureGenerator -Dexec.args="/output/dir"
  */
 public class LastraTestFixtureGenerator {
 

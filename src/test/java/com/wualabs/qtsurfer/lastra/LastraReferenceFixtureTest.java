@@ -13,11 +13,11 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Generates the canonical reference fixture and validates it in Java.
- * The same fixture file and expected values are used by reef-ts tests.
+ * The same fixture file and expected values are used by lastra-ts tests.
  *
  * <p>Seed: Random(42), baseTs: 1711152000000000000 (ns)
  *
- * <p>Run with -Dreef.fixture.dir=path to write the .lastra file to disk for TS tests.
+ * <p>Run with -Dlastra.fixture.dir=path to write the .lastra file to disk for TS tests.
  */
 class LastraReferenceFixtureTest {
 
@@ -188,7 +188,7 @@ class LastraReferenceFixtureTest {
         System.out.printf("rsi1[1] = %.2f%n", expectedRsi[1]);
 
         // Write fixture to disk if dir specified
-        String fixtureDir = System.getProperty("reef.fixture.dir");
+        String fixtureDir = System.getProperty("lastra.fixture.dir");
         if (fixtureDir != null) {
             Path dir = Path.of(fixtureDir);
             Files.createDirectories(dir);

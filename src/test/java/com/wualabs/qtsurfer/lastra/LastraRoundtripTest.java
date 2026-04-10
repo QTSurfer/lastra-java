@@ -30,11 +30,11 @@ class LastraRoundtripTest {
             w.writeSeries(rows, ts, close);
         }
 
-        byte[] reefBytes = baos.toByteArray();
-        double ratio = (double) (rows * 16) / reefBytes.length;
-        System.out.printf("Series only: %d rows, %d bytes, ratio=%.2fx%n", rows, reefBytes.length, ratio);
+        byte[] lastraBytes = baos.toByteArray();
+        double ratio = (double) (rows * 16) / lastraBytes.length;
+        System.out.printf("Series only: %d rows, %d bytes, ratio=%.2fx%n", rows, lastraBytes.length, ratio);
 
-        LastraReader r = LastraReader.from(reefBytes);
+        LastraReader r = LastraReader.from(lastraBytes);
         assertThat(r.seriesRowCount()).isEqualTo(rows);
         assertThat(r.seriesColumns()).hasSize(2);
 
@@ -80,11 +80,11 @@ class LastraRoundtripTest {
             w.writeSeries(rows, ts, open, high, low, close, volume);
         }
 
-        byte[] reefBytes = baos.toByteArray();
-        double ratio = (double) (rows * 48) / reefBytes.length;
-        System.out.printf("OHLCV: %d rows, %d bytes, ratio=%.2fx%n", rows, reefBytes.length, ratio);
+        byte[] lastraBytes = baos.toByteArray();
+        double ratio = (double) (rows * 48) / lastraBytes.length;
+        System.out.printf("OHLCV: %d rows, %d bytes, ratio=%.2fx%n", rows, lastraBytes.length, ratio);
 
-        LastraReader r = LastraReader.from(reefBytes);
+        LastraReader r = LastraReader.from(lastraBytes);
         assertThat(r.readSeriesLong("ts")).containsExactly(ts);
         assertBitExact(r.readSeriesDouble("close"), close);
         assertBitExact(r.readSeriesDouble("volume"), volume);
@@ -137,11 +137,11 @@ class LastraRoundtripTest {
             w.writeEvents(eventCount, eventTs, eventTypes, eventData);
         }
 
-        byte[] reefBytes = baos.toByteArray();
+        byte[] lastraBytes = baos.toByteArray();
         System.out.printf("Series+Events: %d series rows + %d events, %d bytes%n",
-                rows, eventCount, reefBytes.length);
+                rows, eventCount, lastraBytes.length);
 
-        LastraReader r = LastraReader.from(reefBytes);
+        LastraReader r = LastraReader.from(lastraBytes);
         assertThat(r.seriesRowCount()).isEqualTo(rows);
         assertThat(r.eventsRowCount()).isEqualTo(eventCount);
         assertThat(r.readSeriesLong("ts")).containsExactly(ts);
