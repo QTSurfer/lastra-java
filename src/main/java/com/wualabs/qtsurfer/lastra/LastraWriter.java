@@ -1,11 +1,11 @@
-package com.wualabs.qtsurfer.reef;
+package com.wualabs.qtsurfer.lastra;
 
 import com.wualabs.qtsurfer.alp.AlpCompressor;
-import com.wualabs.qtsurfer.reef.codec.DeltaVarintCodec;
-import com.wualabs.qtsurfer.reef.codec.GorillaCodec;
-import com.wualabs.qtsurfer.reef.codec.PongoCodec;
-import com.wualabs.qtsurfer.reef.codec.RawCodec;
-import com.wualabs.qtsurfer.reef.codec.VarlenCodec;
+import com.wualabs.qtsurfer.lastra.codec.DeltaVarintCodec;
+import com.wualabs.qtsurfer.lastra.codec.GorillaCodec;
+import com.wualabs.qtsurfer.lastra.codec.PongoCodec;
+import com.wualabs.qtsurfer.lastra.codec.RawCodec;
+import com.wualabs.qtsurfer.lastra.codec.VarlenCodec;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
@@ -19,11 +19,11 @@ import java.util.Map;
 import java.util.zip.CRC32;
 
 /**
- * Writes Reef files: header + series columns + optional events columns + footer.
+ * Writes Lastra files: header + series columns + optional events columns + footer.
  *
  * <p>Usage:
  * <pre>
- * try (ReefWriter w = new ReefWriter(outputStream)) {
+ * try (LastraWriter w = new LastraWriter(outputStream)) {
  *     w.addSeriesColumn("ts", DataType.LONG, Codec.DELTA_VARINT);
  *     w.addSeriesColumn("close", DataType.DOUBLE, Codec.ALP);
  *     w.addEventColumn("ts", DataType.LONG, Codec.DELTA_VARINT);
@@ -37,7 +37,7 @@ import java.util.zip.CRC32;
  * }
  * </pre>
  */
-public class ReefWriter implements Closeable {
+public class LastraWriter implements Closeable {
 
     private final OutputStream out;
     private final List<ColumnDescriptor> seriesColumns = new ArrayList<>();
@@ -54,25 +54,25 @@ public class ReefWriter implements Closeable {
     private int seriesRowCount;
     private int eventsRowCount;
 
-    public ReefWriter(OutputStream out) {
+    public LastraWriter(OutputStream out) {
         this.out = out;
     }
 
-    public ReefWriter addSeriesColumn(String name, Reef.DataType dataType, Reef.Codec codec) {
+    public LastraWriter addSeriesColumn(String name, Lastra.DataType dataType, Lastra.Codec codec) {
         return addSeriesColumn(name, dataType, codec, null);
     }
 
-    public ReefWriter addSeriesColumn(String name, Reef.DataType dataType, Reef.Codec codec,
+    public LastraWriter addSeriesColumn(String name, Lastra.DataType dataType, Lastra.Codec codec,
                                       Map<String, String> metadata) {
         seriesColumns.add(new ColumnDescriptor(name, dataType, codec, metadata));
         return this;
     }
 
-    public ReefWriter addEventColumn(String name, Reef.DataType dataType, Reef.Codec codec) {
+    public LastraWriter addEventColumn(String name, Lastra.DataType dataType, Lastra.Codec codec) {
         return addEventColumn(name, dataType, codec, null);
     }
 
-    public ReefWriter addEventColumn(String name, Reef.DataType dataType, Reef.Codec codec,
+    public LastraWriter addEventColumn(String name, Lastra.DataType dataType, Lastra.Codec codec,
                                      Map<String, String> metadata) {
         eventColumns.add(new ColumnDescriptor(name, dataType, codec, metadata));
         return this;
@@ -82,7 +82,7 @@ public class ReefWriter implements Closeable {
      * Set series data from arrays. Each array corresponds to a series column in order.
      * Use {@code long[]} for LONG columns, {@code double[]} for DOUBLE, {@code byte[][]} for BINARY.
      */
-    public ReefWriter writeSeries(int rowCount, Object... columnData) {
+    public LastraWriter writeSeries(int rowCount, Object... columnData) {
         this.seriesRowCount = rowCount;
         for (int i = 0; i < seriesColumns.size(); i++) {
             ColumnDescriptor col = seriesColumns.get(i);
@@ -110,7 +110,7 @@ public class ReefWriter implements Closeable {
     /**
      * Set events data from arrays. Same convention as {@link #writeSeries}.
      */
-    public ReefWriter writeEvents(int rowCount, Object... columnData) {
+    public LastraWriter writeEvents(int rowCount, Object... columnData) {
         this.eventsRowCount = rowCount;
         for (int i = 0; i < eventColumns.size(); i++) {
             ColumnDescriptor col = eventColumns.get(i);
@@ -138,15 +138,15 @@ public class ReefWriter implements Closeable {
     @Override
     public void close() throws IOException {
         boolean hasEvents = !eventColumns.isEmpty() && eventsRowCount > 0;
-        int flags = Reef.FLAG_HAS_FOOTER | Reef.FLAG_HAS_CHECKSUMS;
-        if (hasEvents) flags |= Reef.FLAG_HAS_EVENTS;
+        int flags = Lastra.FLAG_HAS_FOOTER | Lastra.FLAG_HAS_CHECKSUMS;
+        if (hasEvents) flags |= Lastra.FLAG_HAS_EVENTS;
 
         ByteArrayOutputStream body = new ByteArrayOutputStream();
 
         // === HEADER ===
         ByteBuffer header = ByteBuffer.allocate(22).order(ByteOrder.LITTLE_ENDIAN);
-        header.putInt(Reef.MAGIC);
-        header.putShort((short) Reef.VERSION);
+        header.putInt(Lastra.MAGIC);
+        header.putShort((short) Lastra.VERSION);
         header.putShort((short) flags);
         header.putInt(seriesRowCount);
         header.putInt(seriesColumns.size());
@@ -192,7 +192,7 @@ public class ReefWriter implements Closeable {
         for (int offset : eventOffsets) writeIntLE(body, offset);
         for (int crc : seriesCrcs) writeIntLE(body, crc);
         for (int crc : eventCrcs) writeIntLE(body, crc);
-        writeIntLE(body, Reef.FOOTER_MAGIC);
+        writeIntLE(body, Lastra.FOOTER_MAGIC);
 
         out.write(body.toByteArray());
         out.flush();
@@ -238,7 +238,7 @@ public class ReefWriter implements Closeable {
         return result;
     }
 
-    private byte[] compressLongColumn(long[] data, int count, Reef.Codec codec) {
+    private byte[] compressLongColumn(long[] data, int count, Lastra.Codec codec) {
         switch (codec) {
             case DELTA_VARINT: return DeltaVarintCodec.encode(data, count);
             case RAW: return RawCodec.encodeLongs(data, count);
@@ -246,7 +246,7 @@ public class ReefWriter implements Closeable {
         }
     }
 
-    private byte[] compressDoubleColumn(double[] data, int count, Reef.Codec codec) {
+    private byte[] compressDoubleColumn(double[] data, int count, Lastra.Codec codec) {
         switch (codec) {
             case ALP: return new AlpCompressor().compress(data, count);
             case GORILLA: return GorillaCodec.encode(data, count);
@@ -256,7 +256,7 @@ public class ReefWriter implements Closeable {
         }
     }
 
-    private byte[] compressBinaryColumn(byte[][] data, int count, Reef.Codec codec) {
+    private byte[] compressBinaryColumn(byte[][] data, int count, Lastra.Codec codec) {
         switch (codec) {
             case VARLEN: return VarlenCodec.encode(data, count, VarlenCodec.COMPRESSION_NONE);
             case VARLEN_ZSTD: return VarlenCodec.encode(data, count, VarlenCodec.COMPRESSION_ZSTD);

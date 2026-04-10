@@ -1,11 +1,11 @@
-package com.wualabs.qtsurfer.reef;
+package com.wualabs.qtsurfer.lastra;
 
 import com.wualabs.qtsurfer.alp.AlpDecompressor;
-import com.wualabs.qtsurfer.reef.codec.DeltaVarintCodec;
-import com.wualabs.qtsurfer.reef.codec.GorillaCodec;
-import com.wualabs.qtsurfer.reef.codec.PongoCodec;
-import com.wualabs.qtsurfer.reef.codec.RawCodec;
-import com.wualabs.qtsurfer.reef.codec.VarlenCodec;
+import com.wualabs.qtsurfer.lastra.codec.DeltaVarintCodec;
+import com.wualabs.qtsurfer.lastra.codec.GorillaCodec;
+import com.wualabs.qtsurfer.lastra.codec.PongoCodec;
+import com.wualabs.qtsurfer.lastra.codec.RawCodec;
+import com.wualabs.qtsurfer.lastra.codec.VarlenCodec;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -19,17 +19,17 @@ import java.util.Map;
 import java.util.zip.CRC32;
 
 /**
- * Reads Reef files. Supports selective column reading via footer offsets.
+ * Reads Lastra files. Supports selective column reading via footer offsets.
  *
  * <p>Usage:
  * <pre>
- * ReefReader reader = ReefReader.from(inputStream);
+ * LastraReader reader = LastraReader.from(inputStream);
  * long[] ts = reader.readSeriesLong("ts");
  * double[] close = reader.readSeriesDouble("close");
  * byte[][] signals = reader.readEventBinary("data");
  * </pre>
  */
-public class ReefReader {
+public class LastraReader {
 
     private final ByteBuffer buf;
     private final int flags;
@@ -52,18 +52,18 @@ public class ReefReader {
     private final int[] eventCrcs;
     private final boolean hasChecksums;
 
-    private ReefReader(byte[] data) {
+    private LastraReader(byte[] data) {
         this.buf = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN);
 
         // Header
         int magic = buf.getInt();
-        if (magic != Reef.MAGIC) {
+        if (magic != Lastra.MAGIC) {
             throw new IllegalArgumentException(
-                    String.format("Not a Reef file (magic: 0x%08X)", magic));
+                    String.format("Not a Lastra file (magic: 0x%08X)", magic));
         }
         int version = buf.getShort() & 0xFFFF;
-        if (version > Reef.VERSION) {
-            throw new IllegalArgumentException("Unsupported Reef version: " + version);
+        if (version > Lastra.VERSION) {
+            throw new IllegalArgumentException("Unsupported Lastra version: " + version);
         }
         this.flags = buf.getShort() & 0xFFFF;
         this.seriesRowCount = buf.getInt();
@@ -73,15 +73,15 @@ public class ReefReader {
 
         // Column descriptors
         this.seriesColumns = readColumnDescriptors(seriesColCount);
-        boolean hasEvents = (flags & Reef.FLAG_HAS_EVENTS) != 0;
+        boolean hasEvents = (flags & Lastra.FLAG_HAS_EVENTS) != 0;
         this.eventColumns = hasEvents ? readColumnDescriptors(eventColCount) : Collections.emptyList();
 
         // Data section starts here
         this.dataOffset = buf.position();
 
         // Read footer (offsets + optional checksums)
-        boolean hasFooter = (flags & Reef.FLAG_HAS_FOOTER) != 0;
-        this.hasChecksums = (flags & Reef.FLAG_HAS_CHECKSUMS) != 0;
+        boolean hasFooter = (flags & Lastra.FLAG_HAS_FOOTER) != 0;
+        this.hasChecksums = (flags & Lastra.FLAG_HAS_CHECKSUMS) != 0;
 
         if (hasFooter) {
             int totalCols = seriesColCount + eventColumns.size();
@@ -117,8 +117,8 @@ public class ReefReader {
             }
 
             int footerMagic = footer.getInt();
-            if (footerMagic != Reef.FOOTER_MAGIC) {
-                throw new IllegalArgumentException("Invalid Reef footer");
+            if (footerMagic != Lastra.FOOTER_MAGIC) {
+                throw new IllegalArgumentException("Invalid Lastra footer");
             }
         } else {
             this.seriesOffsets = new int[0];
@@ -148,17 +148,17 @@ public class ReefReader {
     }
 
     /**
-     * Read a Reef file from an InputStream (loads entirely into memory).
+     * Read a Lastra file from an InputStream (loads entirely into memory).
      */
-    public static ReefReader from(InputStream in) throws IOException {
-        return new ReefReader(in.readAllBytes());
+    public static LastraReader from(InputStream in) throws IOException {
+        return new LastraReader(in.readAllBytes());
     }
 
     /**
-     * Read a Reef file from a byte array.
+     * Read a Lastra file from a byte array.
      */
-    public static ReefReader from(byte[] data) {
-        return new ReefReader(data);
+    public static LastraReader from(byte[] data) {
+        return new LastraReader(data);
     }
 
     public int seriesRowCount() { return seriesRowCount; }
@@ -219,7 +219,7 @@ public class ReefReader {
 
     // --- Decoders ---
 
-    private long[] decodeLongColumn(byte[] data, int count, Reef.Codec codec) {
+    private long[] decodeLongColumn(byte[] data, int count, Lastra.Codec codec) {
         switch (codec) {
             case DELTA_VARINT: return DeltaVarintCodec.decode(data, count);
             case RAW: return RawCodec.decodeLongs(data, count);
@@ -227,7 +227,7 @@ public class ReefReader {
         }
     }
 
-    private double[] decodeDoubleColumn(byte[] data, int count, Reef.Codec codec) {
+    private double[] decodeDoubleColumn(byte[] data, int count, Lastra.Codec codec) {
         switch (codec) {
             case ALP: return new AlpDecompressor().decompress(data);
             case GORILLA: return GorillaCodec.decode(data, count);
@@ -276,8 +276,8 @@ public class ReefReader {
                 buf.get(metaBytes);
                 metadata = parseJsonMap(new String(metaBytes, StandardCharsets.UTF_8));
             }
-            cols.add(new ColumnDescriptor(name, Reef.DataType.fromId(typeId),
-                    Reef.Codec.fromId(codecId), metadata));
+            cols.add(new ColumnDescriptor(name, Lastra.DataType.fromId(typeId),
+                    Lastra.Codec.fromId(codecId), metadata));
         }
         return cols;
     }

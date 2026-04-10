@@ -1,10 +1,10 @@
-package com.wualabs.qtsurfer.reef.codec;
+package com.wualabs.qtsurfer.lastra.codec;
 
 /**
  * Gorilla XOR compression for double columns.
  *
  * <p>Implements the value compression from the Facebook Gorilla paper (VLDB 2015),
- * without timestamp encoding (Reef handles timestamps separately via DELTA_VARINT).
+ * without timestamp encoding (Lastra handles timestamps separately via DELTA_VARINT).
  *
  * <p>Algorithm:
  * <ol>

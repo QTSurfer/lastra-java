@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.wualabs.qtsurfer</groupId>
-    <artifactId>reef</artifactId>
+    <artifactId>lastra</artifactId>
     <version>0.7.0</version>
     <packaging>jar</packaging>
 
@@ -12,12 +12,12 @@
         Combines per-column codec selection (ALP, Gorilla, Pongo, delta-varint) with
         separated series and events sections. Ideal for financial tick data, IoT sensors,
         and infrastructure metrics.</description>
-    <url>https://github.com/QTSurfer/reef-java</url>
+    <url>https://github.com/QTSurfer/lastra-java</url>
 
     <scm>
-        <connection>scm:git:git@github.com:QTSurfer/reef-java.git</connection>
-        <url>scm:git:git@github.com:QTSurfer/reef-java.git</url>
-        <developerConnection>scm:git:git@github.com:QTSurfer/reef-java.git</developerConnection>
+        <connection>scm:git:git@github.com:QTSurfer/lastra-java.git</connection>
+        <url>scm:git:git@github.com:QTSurfer/lastra-java.git</url>
+        <developerConnection>scm:git:git@github.com:QTSurfer/lastra-java.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 

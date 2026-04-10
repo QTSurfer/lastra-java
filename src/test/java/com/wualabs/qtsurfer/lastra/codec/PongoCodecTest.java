@@ -1,8 +1,8 @@
-package com.wualabs.qtsurfer.reef.codec;
+package com.wualabs.qtsurfer.lastra.codec;
 
-import com.wualabs.qtsurfer.reef.Reef;
-import com.wualabs.qtsurfer.reef.ReefReader;
-import com.wualabs.qtsurfer.reef.ReefWriter;
+import com.wualabs.qtsurfer.lastra.Lastra;
+import com.wualabs.qtsurfer.lastra.LastraReader;
+import com.wualabs.qtsurfer.lastra.LastraWriter;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -81,18 +81,18 @@ class PongoCodecTest {
     }
 
     @Test
-    void endToEndReefRoundtrip() throws Exception {
+    void endToEndLastraRoundtrip() throws Exception {
         double[] prices = {65007.28, 65011.83, 65015.50, 64998.12, 65023.45};
         long[] timestamps = {1000L, 2000L, 3000L, 4000L, 5000L};
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        try (ReefWriter w = new ReefWriter(out)) {
-            w.addSeriesColumn("ts", Reef.DataType.LONG, Reef.Codec.DELTA_VARINT);
-            w.addSeriesColumn("close", Reef.DataType.DOUBLE, Reef.Codec.PONGO);
+        try (LastraWriter w = new LastraWriter(out)) {
+            w.addSeriesColumn("ts", Lastra.DataType.LONG, Lastra.Codec.DELTA_VARINT);
+            w.addSeriesColumn("close", Lastra.DataType.DOUBLE, Lastra.Codec.PONGO);
             w.writeSeries(5, timestamps, prices);
         }
 
-        ReefReader r = ReefReader.from(out.toByteArray());
+        LastraReader r = LastraReader.from(out.toByteArray());
         assertThat(r.readSeriesLong("ts")).containsExactly(timestamps);
         assertThat(r.readSeriesDouble("close")).containsExactly(prices);
     }

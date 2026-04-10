@@ -1,12 +1,12 @@
-# Reef
+# Lastra
 
-[![CI](https://github.com/QTSurfer/reef-java/actions/workflows/ci.yml/badge.svg)](https://github.com/QTSurfer/reef-java/actions/workflows/ci.yml)
-[![JitPack](https://jitpack.io/v/QTSurfer/reef-java.svg)](https://jitpack.io/#QTSurfer/reef-java)
+[![CI](https://github.com/QTSurfer/lastra-java/actions/workflows/ci.yml/badge.svg)](https://github.com/QTSurfer/lastra-java/actions/workflows/ci.yml)
+[![JitPack](https://jitpack.io/v/QTSurfer/lastra-java.svg)](https://jitpack.io/#QTSurfer/lastra-java)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 Columnar time series file format optimized for numeric data. Ideal for financial tick data, IoT sensors, and infrastructure metrics.
 
-Combines [ALP](https://github.com/QTSurfer/alp-java), Gorilla, and Pongo compression for doubles, delta-varint for timestamps, and ZSTD/gzip for binary data — with per-column codec selection in a single `.reef` file.
+Combines [ALP](https://github.com/QTSurfer/alp-java), Gorilla, and Pongo compression for doubles, delta-varint for timestamps, and ZSTD/gzip for binary data — with per-column codec selection in a single `.lastra` file.
 
 ## Features
 
@@ -22,7 +22,7 @@ Combines [ALP](https://github.com/QTSurfer/alp-java), Gorilla, and Pongo compres
 
 ```
 HEADER (22 bytes, LE):
-  "REEF" magic | version (1) | flags | seriesRowCount | seriesColCount
+  "LAST" magic | version (1) | flags | seriesRowCount | seriesColCount
   eventsRowCount | eventsColCount
 
 COLUMN DESCRIPTORS (series, then events):
@@ -32,7 +32,7 @@ COLUMN DESCRIPTORS (series, then events):
 SERIES DATA:        per column: [4 bytes length] [compressed data]
 EVENTS DATA:        per column: [4 bytes length] [compressed data]
 
-FOOTER:             column offsets + [column CRC32s] + "REF!" magic
+FOOTER:             column offsets + [column CRC32s] + "LAS!" magic
 ```
 
 ### Header flags
@@ -65,7 +65,7 @@ When `FLAG_HAS_CHECKSUMS` is set, the footer contains one CRC32 (IEEE 802.3) per
 ### Write OHLCV ticker data
 
 ```java
-try (ReefWriter w = new ReefWriter(outputStream)) {
+try (LastraWriter w = new LastraWriter(outputStream)) {
     w.addSeriesColumn("ts", DataType.LONG, Codec.DELTA_VARINT);
     w.addSeriesColumn("open", DataType.DOUBLE, Codec.ALP);
     w.addSeriesColumn("high", DataType.DOUBLE, Codec.ALP);
@@ -79,7 +79,7 @@ try (ReefWriter w = new ReefWriter(outputStream)) {
 ### Write IoT sensor data with alerts
 
 ```java
-try (ReefWriter w = new ReefWriter(outputStream)) {
+try (LastraWriter w = new LastraWriter(outputStream)) {
     // Series: sensor readings with metadata
     w.addSeriesColumn("ts", DataType.LONG, Codec.DELTA_VARINT);
     w.addSeriesColumn("temperature", DataType.DOUBLE, Codec.PONGO,
@@ -101,7 +101,7 @@ try (ReefWriter w = new ReefWriter(outputStream)) {
 ### Write financial strategy results
 
 ```java
-try (ReefWriter w = new ReefWriter(outputStream)) {
+try (LastraWriter w = new LastraWriter(outputStream)) {
     w.addSeriesColumn("ts", DataType.LONG, Codec.DELTA_VARINT);
     w.addSeriesColumn("close", DataType.DOUBLE, Codec.ALP);
     w.addSeriesColumn("ema1", DataType.DOUBLE, Codec.ALP,
@@ -121,7 +121,7 @@ try (ReefWriter w = new ReefWriter(outputStream)) {
 ### Read (selective columns)
 
 ```java
-ReefReader r = ReefReader.from(inputStream);
+LastraReader r = LastraReader.from(inputStream);
 
 // Read only what you need — other columns are not decompressed
 long[] ts = r.readSeriesLong("ts");
@@ -143,14 +143,14 @@ OHLCV ticker data (1000 rows, 2 decimal places):
 | Format | Size | Ratio |
 |--------|------|-------|
 | Raw | 48 KB | 1x |
-| **Reef** | **~3.5 KB** | **~13x** |
+| **Lastra** | **~3.5 KB** | **~13x** |
 | [Apache Parquet](https://parquet.apache.org/) (SNAPPY) | ~8 KB | ~6x |
 
-## Reef vs Apache Parquet
+## Lastra vs Apache Parquet
 
 ### Codec comparison
 
-| Aspect | [Apache Parquet](https://parquet.apache.org/) | Reef |
+| Aspect | [Apache Parquet](https://parquet.apache.org/) | Lastra |
 |--------|---|---|
 | **Timestamps (int64)** | [DELTA_BINARY_PACKED](https://parquet.apache.org/docs/file-format/data-pages/encodings/#delta-encoding-delta_binary_packed--5) (~1-2 bytes/value) | DELTA_VARINT (~1 byte/value) |
 | **Doubles (numeric)** | PLAIN + block compression (SNAPPY/ZSTD) | **ALP** (~3-4 bits/value), **Pongo** (~18 bits/value), **Gorilla** (XOR) |
@@ -164,12 +164,12 @@ OHLCV ticker data (1000 rows, 2 decimal places):
 | Format | Size | Ratio vs Parquet |
 |--------|------|------------------|
 | [Apache Parquet](https://parquet.apache.org/) (SNAPPY) | 118 KB | 1x |
-| Reef (ALP default) | 82 KB | 1.4x smaller |
-| **Reef (mixed codecs via [reef-convert](https://github.com/QTSurfer/qtsurfer-reef-convert) `--best`)** | **73 KB** | **1.6x smaller** |
+| Lastra (ALP default) | 82 KB | 1.4x smaller |
+| **Lastra (mixed codecs via [lastra-convert](https://github.com/QTSurfer/qtsurfer-lastra-convert) `--best`)** | **73 KB** | **1.6x smaller** |
 
-### Why Reef compresses better for numeric time series
+### Why Lastra compresses better for numeric time series
 
-[Apache Parquet](https://parquet.apache.org/) stores doubles as raw 8 bytes (PLAIN encoding) then applies generic block compression (SNAPPY/ZSTD). Reef applies **semantic compression** per column:
+[Apache Parquet](https://parquet.apache.org/) stores doubles as raw 8 bytes (PLAIN encoding) then applies generic block compression (SNAPPY/ZSTD). Lastra applies **semantic compression** per column:
 
 - **ALP**: understands that `65007.28` has 2 decimal places → 3-4 bits/value
 - **Pongo**: detects decimal patterns and erases mantissa noise before XOR → ~18 bits/value
@@ -193,7 +193,7 @@ OHLCV ticker data (1000 rows, 2 decimal places):
 
 <dependency>
     <groupId>com.github.qtsurfer</groupId>
-    <artifactId>reef-java</artifactId>
+    <artifactId>lastra-java</artifactId>
     <version>0.7.0</version>
 </dependency>
 ```
@@ -206,7 +206,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.qtsurfer:reef-java:0.7.0'
+    implementation 'com.github.qtsurfer:lastra-java:0.7.0'
 }
 ```
 

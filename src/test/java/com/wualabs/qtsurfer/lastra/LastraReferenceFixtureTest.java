@@ -1,4 +1,4 @@
-package com.wualabs.qtsurfer.reef;
+package com.wualabs.qtsurfer.lastra;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -17,9 +17,9 @@ import org.junit.jupiter.api.Test;
  *
  * <p>Seed: Random(42), baseTs: 1711152000000000000 (ns)
  *
- * <p>Run with -Dreef.fixture.dir=path to write the .reef file to disk for TS tests.
+ * <p>Run with -Dreef.fixture.dir=path to write the .lastra file to disk for TS tests.
  */
-class ReefReferenceFixtureTest {
+class LastraReferenceFixtureTest {
 
     static final long BASE_TS = 1_711_152_000_000_000_000L;
     static final int SERIES_ROWS = 100;
@@ -92,14 +92,14 @@ class ReefReferenceFixtureTest {
         byte[][] evData = eventData();
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (ReefWriter w = new ReefWriter(baos)) {
-            w.addSeriesColumn("ts", Reef.DataType.LONG, Reef.Codec.DELTA_VARINT);
-            w.addSeriesColumn("close", Reef.DataType.DOUBLE, Reef.Codec.ALP);
-            w.addSeriesColumn("rsi1", Reef.DataType.DOUBLE, Reef.Codec.ALP,
+        try (LastraWriter w = new LastraWriter(baos)) {
+            w.addSeriesColumn("ts", Lastra.DataType.LONG, Lastra.Codec.DELTA_VARINT);
+            w.addSeriesColumn("close", Lastra.DataType.DOUBLE, Lastra.Codec.ALP);
+            w.addSeriesColumn("rsi1", Lastra.DataType.DOUBLE, Lastra.Codec.ALP,
                     Map.of("indicator", "rsi", "periods", "14"));
-            w.addEventColumn("ts", Reef.DataType.LONG, Reef.Codec.DELTA_VARINT);
-            w.addEventColumn("type", Reef.DataType.BINARY, Reef.Codec.VARLEN);
-            w.addEventColumn("data", Reef.DataType.BINARY, Reef.Codec.VARLEN_ZSTD);
+            w.addEventColumn("ts", Lastra.DataType.LONG, Lastra.Codec.DELTA_VARINT);
+            w.addEventColumn("type", Lastra.DataType.BINARY, Lastra.Codec.VARLEN);
+            w.addEventColumn("data", Lastra.DataType.BINARY, Lastra.Codec.VARLEN_ZSTD);
             w.writeSeries(SERIES_ROWS, ts, close, rsi);
             w.writeEvents(EVENT_COUNT, evTs, evTypes, evData);
         }
@@ -110,7 +110,7 @@ class ReefReferenceFixtureTest {
     void testReferenceFixtureRoundtrip() throws Exception {
         byte[] fixture = generateFixture();
 
-        ReefReader r = ReefReader.from(fixture);
+        LastraReader r = LastraReader.from(fixture);
 
         // Header
         assertThat(r.seriesRowCount()).isEqualTo(SERIES_ROWS);
@@ -192,8 +192,8 @@ class ReefReferenceFixtureTest {
         if (fixtureDir != null) {
             Path dir = Path.of(fixtureDir);
             Files.createDirectories(dir);
-            Files.write(dir.resolve("reference.reef"), fixture);
-            System.out.println("Fixture written to " + dir.resolve("reference.reef"));
+            Files.write(dir.resolve("reference.lastra"), fixture);
+            System.out.println("Fixture written to " + dir.resolve("reference.lastra"));
         }
     }
 }

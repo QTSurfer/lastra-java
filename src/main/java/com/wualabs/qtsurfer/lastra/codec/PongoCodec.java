@@ -1,4 +1,4 @@
-package com.wualabs.qtsurfer.reef.codec;
+package com.wualabs.qtsurfer.lastra.codec;
 
 /**
  * Pongo codec: decimal-aware erasure + Gorilla XOR compression for double columns.

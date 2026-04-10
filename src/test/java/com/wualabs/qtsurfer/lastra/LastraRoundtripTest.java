@@ -1,4 +1,4 @@
-package com.wualabs.qtsurfer.reef;
+package com.wualabs.qtsurfer.lastra;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Random;
 import org.junit.jupiter.api.Test;
 
-class ReefRoundtripTest {
+class LastraRoundtripTest {
 
     @Test
     void testSeriesOnlyTickerData() throws Exception {
@@ -24,9 +24,9 @@ class ReefRoundtripTest {
         }
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (ReefWriter w = new ReefWriter(baos)) {
-            w.addSeriesColumn("ts", Reef.DataType.LONG, Reef.Codec.DELTA_VARINT);
-            w.addSeriesColumn("close", Reef.DataType.DOUBLE, Reef.Codec.ALP);
+        try (LastraWriter w = new LastraWriter(baos)) {
+            w.addSeriesColumn("ts", Lastra.DataType.LONG, Lastra.Codec.DELTA_VARINT);
+            w.addSeriesColumn("close", Lastra.DataType.DOUBLE, Lastra.Codec.ALP);
             w.writeSeries(rows, ts, close);
         }
 
@@ -34,7 +34,7 @@ class ReefRoundtripTest {
         double ratio = (double) (rows * 16) / reefBytes.length;
         System.out.printf("Series only: %d rows, %d bytes, ratio=%.2fx%n", rows, reefBytes.length, ratio);
 
-        ReefReader r = ReefReader.from(reefBytes);
+        LastraReader r = LastraReader.from(reefBytes);
         assertThat(r.seriesRowCount()).isEqualTo(rows);
         assertThat(r.seriesColumns()).hasSize(2);
 
@@ -70,13 +70,13 @@ class ReefRoundtripTest {
         }
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (ReefWriter w = new ReefWriter(baos)) {
-            w.addSeriesColumn("ts", Reef.DataType.LONG, Reef.Codec.DELTA_VARINT);
-            w.addSeriesColumn("open", Reef.DataType.DOUBLE, Reef.Codec.ALP);
-            w.addSeriesColumn("high", Reef.DataType.DOUBLE, Reef.Codec.ALP);
-            w.addSeriesColumn("low", Reef.DataType.DOUBLE, Reef.Codec.ALP);
-            w.addSeriesColumn("close", Reef.DataType.DOUBLE, Reef.Codec.ALP);
-            w.addSeriesColumn("volume", Reef.DataType.DOUBLE, Reef.Codec.ALP);
+        try (LastraWriter w = new LastraWriter(baos)) {
+            w.addSeriesColumn("ts", Lastra.DataType.LONG, Lastra.Codec.DELTA_VARINT);
+            w.addSeriesColumn("open", Lastra.DataType.DOUBLE, Lastra.Codec.ALP);
+            w.addSeriesColumn("high", Lastra.DataType.DOUBLE, Lastra.Codec.ALP);
+            w.addSeriesColumn("low", Lastra.DataType.DOUBLE, Lastra.Codec.ALP);
+            w.addSeriesColumn("close", Lastra.DataType.DOUBLE, Lastra.Codec.ALP);
+            w.addSeriesColumn("volume", Lastra.DataType.DOUBLE, Lastra.Codec.ALP);
             w.writeSeries(rows, ts, open, high, low, close, volume);
         }
 
@@ -84,7 +84,7 @@ class ReefRoundtripTest {
         double ratio = (double) (rows * 48) / reefBytes.length;
         System.out.printf("OHLCV: %d rows, %d bytes, ratio=%.2fx%n", rows, reefBytes.length, ratio);
 
-        ReefReader r = ReefReader.from(reefBytes);
+        LastraReader r = LastraReader.from(reefBytes);
         assertThat(r.readSeriesLong("ts")).containsExactly(ts);
         assertBitExact(r.readSeriesDouble("close"), close);
         assertBitExact(r.readSeriesDouble("volume"), volume);
@@ -127,12 +127,12 @@ class ReefRoundtripTest {
         };
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (ReefWriter w = new ReefWriter(baos)) {
-            w.addSeriesColumn("ts", Reef.DataType.LONG, Reef.Codec.DELTA_VARINT);
-            w.addSeriesColumn("close", Reef.DataType.DOUBLE, Reef.Codec.ALP);
-            w.addEventColumn("ts", Reef.DataType.LONG, Reef.Codec.DELTA_VARINT);
-            w.addEventColumn("type", Reef.DataType.BINARY, Reef.Codec.VARLEN);
-            w.addEventColumn("data", Reef.DataType.BINARY, Reef.Codec.VARLEN_ZSTD);
+        try (LastraWriter w = new LastraWriter(baos)) {
+            w.addSeriesColumn("ts", Lastra.DataType.LONG, Lastra.Codec.DELTA_VARINT);
+            w.addSeriesColumn("close", Lastra.DataType.DOUBLE, Lastra.Codec.ALP);
+            w.addEventColumn("ts", Lastra.DataType.LONG, Lastra.Codec.DELTA_VARINT);
+            w.addEventColumn("type", Lastra.DataType.BINARY, Lastra.Codec.VARLEN);
+            w.addEventColumn("data", Lastra.DataType.BINARY, Lastra.Codec.VARLEN_ZSTD);
             w.writeSeries(rows, ts, close);
             w.writeEvents(eventCount, eventTs, eventTypes, eventData);
         }
@@ -141,7 +141,7 @@ class ReefRoundtripTest {
         System.out.printf("Series+Events: %d series rows + %d events, %d bytes%n",
                 rows, eventCount, reefBytes.length);
 
-        ReefReader r = ReefReader.from(reefBytes);
+        LastraReader r = LastraReader.from(reefBytes);
         assertThat(r.seriesRowCount()).isEqualTo(rows);
         assertThat(r.eventsRowCount()).isEqualTo(eventCount);
         assertThat(r.readSeriesLong("ts")).containsExactly(ts);
@@ -168,14 +168,14 @@ class ReefRoundtripTest {
         }
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (ReefWriter w = new ReefWriter(baos)) {
-            w.addSeriesColumn("ts", Reef.DataType.LONG, Reef.Codec.DELTA_VARINT);
-            w.addSeriesColumn("ema1", Reef.DataType.DOUBLE, Reef.Codec.ALP,
+        try (LastraWriter w = new LastraWriter(baos)) {
+            w.addSeriesColumn("ts", Lastra.DataType.LONG, Lastra.Codec.DELTA_VARINT);
+            w.addSeriesColumn("ema1", Lastra.DataType.DOUBLE, Lastra.Codec.ALP,
                     Map.of("indicator", "ema", "periods", "10"));
             w.writeSeries(rows, ts, ema);
         }
 
-        ReefReader r = ReefReader.from(baos.toByteArray());
+        LastraReader r = LastraReader.from(baos.toByteArray());
         ColumnDescriptor emaCol = r.getSeriesColumn("ema1");
         assertThat(emaCol.metadata()).containsEntry("indicator", "ema");
         assertThat(emaCol.metadata()).containsEntry("periods", "10");
@@ -193,13 +193,13 @@ class ReefRoundtripTest {
         }
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (ReefWriter w = new ReefWriter(baos)) {
-            w.addSeriesColumn("ts", Reef.DataType.LONG, Reef.Codec.DELTA_VARINT);
-            w.addSeriesColumn("v", Reef.DataType.DOUBLE, Reef.Codec.ALP);
+        try (LastraWriter w = new LastraWriter(baos)) {
+            w.addSeriesColumn("ts", Lastra.DataType.LONG, Lastra.Codec.DELTA_VARINT);
+            w.addSeriesColumn("v", Lastra.DataType.DOUBLE, Lastra.Codec.ALP);
             w.writeSeries(rows, ts, values);
         }
 
-        ReefReader r = ReefReader.from(new ByteArrayInputStream(baos.toByteArray()));
+        LastraReader r = LastraReader.from(new ByteArrayInputStream(baos.toByteArray()));
         assertThat(r.readSeriesLong("ts")).containsExactly(ts);
         assertBitExact(r.readSeriesDouble("v"), values);
     }

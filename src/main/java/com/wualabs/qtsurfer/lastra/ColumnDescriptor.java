@@ -1,23 +1,23 @@
-package com.wualabs.qtsurfer.reef;
+package com.wualabs.qtsurfer.lastra;
 
 import java.util.Collections;
 import java.util.Map;
 
 /**
- * Describes a column in a Reef file: name, data type, codec, and optional metadata.
+ * Describes a column in a Lastra file: name, data type, codec, and optional metadata.
  */
 public final class ColumnDescriptor {
 
     private final String name;
-    private final Reef.DataType dataType;
-    private final Reef.Codec codec;
+    private final Lastra.DataType dataType;
+    private final Lastra.Codec codec;
     private final Map<String, String> metadata;
 
-    public ColumnDescriptor(String name, Reef.DataType dataType, Reef.Codec codec) {
+    public ColumnDescriptor(String name, Lastra.DataType dataType, Lastra.Codec codec) {
         this(name, dataType, codec, Collections.emptyMap());
     }
 
-    public ColumnDescriptor(String name, Reef.DataType dataType, Reef.Codec codec,
+    public ColumnDescriptor(String name, Lastra.DataType dataType, Lastra.Codec codec,
                             Map<String, String> metadata) {
         this.name = name;
         this.dataType = dataType;
@@ -26,8 +26,8 @@ public final class ColumnDescriptor {
     }
 
     public String name() { return name; }
-    public Reef.DataType dataType() { return dataType; }
-    public Reef.Codec codec() { return codec; }
+    public Lastra.DataType dataType() { return dataType; }
+    public Lastra.Codec codec() { return codec; }
     public Map<String, String> metadata() { return metadata; }
     public boolean hasMetadata() { return !metadata.isEmpty(); }
 }

@@ -1,25 +1,25 @@
-package com.wualabs.qtsurfer.reef;
+package com.wualabs.qtsurfer.lastra;
 
 /**
- * Reef: columnar time series file format.
+ * Lastra: columnar time series file format.
  *
- * <p>Constants and enumerations for the Reef wire format.
+ * <p>Constants and enumerations for the Lastra wire format.
  */
-public final class Reef {
+public final class Lastra {
 
-    private Reef() {}
+    private Lastra() {}
 
-    /** Magic bytes identifying a Reef file. */
-    public static final int MAGIC = 0x52454546; // "REEF" in ASCII
+    /** Magic bytes identifying a Lastra file. */
+    public static final int MAGIC = 0x4C415354; // "LAST" in ASCII
 
     /** Footer sentinel. */
-    public static final int FOOTER_MAGIC = 0x52454621; // "REF!" in ASCII
+    public static final int FOOTER_MAGIC = 0x4C415321; // "LAS!" in ASCII
 
     /** Current format version. */
     public static final int VERSION = 1;
 
     /** File extension (without dot). */
-    public static final String EXTENSION = "reef";
+    public static final String EXTENSION = "lastra";
 
     /** Column data types. */
     public enum DataType {

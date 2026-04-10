@@ -1,4 +1,4 @@
-package com.wualabs.qtsurfer.reef.codec;
+package com.wualabs.qtsurfer.lastra.codec;
 
 /**
  * Decimal-aware lossless bit eraser for IEEE 754 doubles.

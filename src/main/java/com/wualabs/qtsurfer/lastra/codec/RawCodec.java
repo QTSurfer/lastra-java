@@ -1,4 +1,4 @@
-package com.wualabs.qtsurfer.reef.codec;
+package com.wualabs.qtsurfer.lastra.codec;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

@@ -1,4 +1,4 @@
-package com.wualabs.qtsurfer.reef;
+package com.wualabs.qtsurfer.lastra;
 
 import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
@@ -8,10 +8,10 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- * Generates .reef fixture files for cross-language testing (Java writer → TS reader).
+ * Generates .lastra fixture files for cross-language testing (Java writer → TS reader).
  * Run with: mvn exec:java -Dexec.mainClass=...ReefTestFixtureGenerator -Dexec.args="/output/dir"
  */
-public class ReefTestFixtureGenerator {
+public class LastraTestFixtureGenerator {
 
     public static void main(String[] args) throws Exception {
         Path outDir = args.length > 0 ? Path.of(args[0]) : Path.of("target/fixtures");
@@ -35,9 +35,9 @@ public class ReefTestFixtureGenerator {
             close[i] = Math.round((65000.0 + Math.sin(i * 0.01) * 500 + rng.nextDouble() * 10) * 100.0) / 100.0;
         }
 
-        try (ReefWriter w = new ReefWriter(new FileOutputStream(dir.resolve("series-only.reef").toFile()))) {
-            w.addSeriesColumn("ts", Reef.DataType.LONG, Reef.Codec.DELTA_VARINT);
-            w.addSeriesColumn("close", Reef.DataType.DOUBLE, Reef.Codec.ALP);
+        try (LastraWriter w = new LastraWriter(new FileOutputStream(dir.resolve("series-only.lastra").toFile()))) {
+            w.addSeriesColumn("ts", Lastra.DataType.LONG, Lastra.Codec.DELTA_VARINT);
+            w.addSeriesColumn("close", Lastra.DataType.DOUBLE, Lastra.Codec.ALP);
             w.writeSeries(rows, ts, close);
         }
     }
@@ -51,9 +51,9 @@ public class ReefTestFixtureGenerator {
             ema[i] = Math.round((65000.0 + i * 0.1) * 100.0) / 100.0;
         }
 
-        try (ReefWriter w = new ReefWriter(new FileOutputStream(dir.resolve("with-metadata.reef").toFile()))) {
-            w.addSeriesColumn("ts", Reef.DataType.LONG, Reef.Codec.DELTA_VARINT);
-            w.addSeriesColumn("ema1", Reef.DataType.DOUBLE, Reef.Codec.ALP,
+        try (LastraWriter w = new LastraWriter(new FileOutputStream(dir.resolve("with-metadata.lastra").toFile()))) {
+            w.addSeriesColumn("ts", Lastra.DataType.LONG, Lastra.Codec.DELTA_VARINT);
+            w.addSeriesColumn("ema1", Lastra.DataType.DOUBLE, Lastra.Codec.ALP,
                     Map.of("indicator", "ema", "periods", "10"));
             w.writeSeries(rows, ts, ema);
         }
@@ -75,12 +75,12 @@ public class ReefTestFixtureGenerator {
         byte[][] types = {"BUY".getBytes(StandardCharsets.UTF_8), "SELL".getBytes(StandardCharsets.UTF_8), "STOP_LOSS".getBytes(StandardCharsets.UTF_8)};
         byte[][] data = {"{\"price\":65042.17}".getBytes(StandardCharsets.UTF_8), null, "{\"reason\":\"stop\"}".getBytes(StandardCharsets.UTF_8)};
 
-        try (ReefWriter w = new ReefWriter(new FileOutputStream(dir.resolve("with-events.reef").toFile()))) {
-            w.addSeriesColumn("ts", Reef.DataType.LONG, Reef.Codec.DELTA_VARINT);
-            w.addSeriesColumn("close", Reef.DataType.DOUBLE, Reef.Codec.ALP);
-            w.addEventColumn("ts", Reef.DataType.LONG, Reef.Codec.DELTA_VARINT);
-            w.addEventColumn("type", Reef.DataType.BINARY, Reef.Codec.VARLEN);
-            w.addEventColumn("data", Reef.DataType.BINARY, Reef.Codec.VARLEN_ZSTD);
+        try (LastraWriter w = new LastraWriter(new FileOutputStream(dir.resolve("with-events.lastra").toFile()))) {
+            w.addSeriesColumn("ts", Lastra.DataType.LONG, Lastra.Codec.DELTA_VARINT);
+            w.addSeriesColumn("close", Lastra.DataType.DOUBLE, Lastra.Codec.ALP);
+            w.addEventColumn("ts", Lastra.DataType.LONG, Lastra.Codec.DELTA_VARINT);
+            w.addEventColumn("type", Lastra.DataType.BINARY, Lastra.Codec.VARLEN);
+            w.addEventColumn("data", Lastra.DataType.BINARY, Lastra.Codec.VARLEN_ZSTD);
             w.writeSeries(rows, ts, close);
             w.writeEvents(eventCount, eventTs, types, data);
         }

@@ -1,4 +1,4 @@
-package com.wualabs.qtsurfer.reef.codec;
+package com.wualabs.qtsurfer.lastra.codec;
 
 import com.github.luben.zstd.Zstd;
 import java.io.ByteArrayOutputStream;
