@@ -141,11 +141,11 @@ OHLCV ticker data (1000 rows, 2 decimal places):
 | Aspect | [Apache Parquet](https://parquet.apache.org/) | Reef |
 |--------|---|---|
 | **Timestamps (int64)** | [DELTA_BINARY_PACKED](https://parquet.apache.org/docs/file-format/data-pages/encodings/#delta-encoding-delta_binary_packed--5) (~1-2 bytes/value) | DELTA_VARINT (~1 byte/value) |
-| **Doubles (prices)** | PLAIN + block compression (SNAPPY/ZSTD) | **ALP** (~3-4 bits/value), **Pongo** (~18 bits/value), **Gorilla** (XOR) |
+| **Doubles (numeric)** | PLAIN + block compression (SNAPPY/ZSTD) | **ALP** (~3-4 bits/value), **Pongo** (~18 bits/value), **Gorilla** (XOR) |
 | **Strings / binary** | DICTIONARY + RLE, DELTA_BYTE_ARRAY | VARLEN, VARLEN_ZSTD, VARLEN_GZIP |
 | **Block compression** | SNAPPY, GZIP, ZSTD, LZ4, BROTLI | No (compression integrated per codec) |
 | **Per-column codec** | Same codec per file or row group | **Different codec per column** |
-| **Optimized for** | General purpose, big data | Financial time series |
+| **Optimized for** | General purpose, big data | Numeric time series (financial, IoT, infra) |
 
 ### Real-world benchmark (BTC/USDT, 3,591 rows, 11 columns)
 
@@ -155,7 +155,7 @@ OHLCV ticker data (1000 rows, 2 decimal places):
 | Reef (ALP default) | 82 KB | 1.4x smaller |
 | **Reef (mixed codecs via [reef-convert](https://github.com/QTSurfer/qtsurfer-reef-convert) `--best`)** | **73 KB** | **1.6x smaller** |
 
-### Why Reef compresses better for financial data
+### Why Reef compresses better for numeric time series
 
 [Apache Parquet](https://parquet.apache.org/) stores doubles as raw 8 bytes (PLAIN encoding) then applies generic block compression (SNAPPY/ZSTD). Reef applies **semantic compression** per column:
 
