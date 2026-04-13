@@ -1,10 +1,19 @@
-# Lastra
+<p align="center">
+  <img src="logo.svg" alt="Lastra" width="420">
+</p>
 
-[![CI](https://github.com/QTSurfer/lastra-java/actions/workflows/ci.yml/badge.svg)](https://github.com/QTSurfer/lastra-java/actions/workflows/ci.yml)
-[![JitPack](https://jitpack.io/v/QTSurfer/lastra-java.svg)](https://jitpack.io/#QTSurfer/lastra-java)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+<p align="center">
+  <a href="https://github.com/QTSurfer/lastra-java/actions/workflows/ci.yml"><img src="https://github.com/QTSurfer/lastra-java/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://jitpack.io/#QTSurfer/lastra-java"><img src="https://jitpack.io/v/QTSurfer/lastra-java.svg" alt="JitPack"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
+</p>
 
-Columnar time series file format optimized for numeric data. Ideal for financial tick data, IoT sensors, and infrastructure metrics.
+<p align="center">
+  Columnar time series file format optimized for numeric data.<br>
+  Ideal for financial tick data, IoT sensors, and infrastructure metrics.
+</p>
+
+---
 
 Combines [ALP](https://github.com/QTSurfer/alp-java), Gorilla, and Pongo compression for doubles, delta-varint for timestamps, and ZSTD/gzip for binary data — with per-column codec selection in a single `.lastra` file.
 
