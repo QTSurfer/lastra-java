@@ -5,6 +5,7 @@
 <p align="center">
   <a href="https://github.com/QTSurfer/lastra-java/actions/workflows/ci.yml"><img src="https://github.com/QTSurfer/lastra-java/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://jitpack.io/#QTSurfer/lastra-java"><img src="https://jitpack.io/v/QTSurfer/lastra-java.svg" alt="JitPack"></a>
+  <img src="https://img.shields.io/badge/JDK-11%2B-blue?logo=openjdk&logoColor=white" alt="JDK 11+">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
 </p>
 
