@@ -322,7 +322,7 @@ ClickHouse is a full OLAP database — SQL queries, distributed joins, materiali
 
 <dependency>
     <groupId>com.qtsurfer</groupId>
-    <artifactId>lastra</artifactId>
+    <artifactId>lastra-java</artifactId>
     <version>x.x.x</version>
 </dependency>
 ```
@@ -335,7 +335,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.qtsurfer:lastra:x.x.x'
+    implementation 'com.qtsurfer:lastra-java:x.x.x'
 }
 ```
 
