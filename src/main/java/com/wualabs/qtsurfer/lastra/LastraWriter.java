@@ -7,7 +7,6 @@ import com.wualabs.qtsurfer.lastra.codec.PongoCodec;
 import com.wualabs.qtsurfer.lastra.codec.RawCodec;
 import com.wualabs.qtsurfer.lastra.codec.VarlenCodec;
 import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;

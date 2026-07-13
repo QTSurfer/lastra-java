@@ -5,7 +5,7 @@
 
     <groupId>com.qtsurfer</groupId>
     <artifactId>lastra</artifactId>
-    <version>0.8.5</version>
+    <version>0.8.6</version>
     <packaging>jar</packaging>
 
     <name>Lastra</name>
@@ -48,9 +48,9 @@
     <dependencies>
         <!-- ALP codec for double compression -->
         <dependency>
-            <groupId>com.github.qtsurfer</groupId>
+            <groupId>com.qtsurfer</groupId>
             <artifactId>alp-java</artifactId>
-            <version>0.2.1</version>
+            <version>0.3.1</version>
         </dependency>
         <!-- ZSTD for binary column compression -->
         <dependency>
